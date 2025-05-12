@@ -1,0 +1,3 @@
+﻿<Project>
+  <Import Project="..\build\Pdf-To-Png.props" />
+</Project>
