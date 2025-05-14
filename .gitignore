@@ -1,0 +1,31 @@
+﻿# Build artifacts
+Pdf-To-Png/bin/
+Pdf-To-Png/obj/
+
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# VS Code
+.vscode/
+
+# Visual Studio
+.vs/
+
+# Mac OS files
+.DS_Store
+
+# Logs
+*.log
+
+# Docker
+**/Dockerfile
+
+# Others
+*.db
+*.sqlite
+Pdf-To-Png/pub/
+Pdf-To-Png/release/
+Pdf-To-Png/.config/
