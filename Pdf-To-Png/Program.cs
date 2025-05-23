@@ -2,6 +2,21 @@ using Pdf_To_Png.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+var allowedOrigins = new[] {
+    "https://chatfusionx.web.app",
+    "http://localhost:4200"
+};
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowMultipleOrigins", policy =>
+    {
+        policy.WithOrigins(allowedOrigins)
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
+});
+
 // Add services to the container.
 
 builder.Services.AddControllers();
@@ -13,6 +28,8 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<IPdfToPngService, PdfToPngService>();
 
 var app = builder.Build();
+
+app.UseCors("AllowMultipleOrigins");
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
