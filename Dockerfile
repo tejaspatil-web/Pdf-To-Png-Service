@@ -2,12 +2,16 @@
 FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
 WORKDIR /src
 
-COPY Pdf-To-Png/*.csproj ./Pdf-To-Png/
+# copy csproj and restore
+COPY Pdf-To-Png/Pdf-To-Png.csproj ./Pdf-To-Png/
 WORKDIR /src/Pdf-To-Png
 RUN dotnet restore
 
-COPY . .
-RUN dotnet publish Pdf-To-Png.csproj -c Release -o /app/publish --no-restore
+# copy only project files (not whole repo blindly)
+COPY Pdf-To-Png/. .
+
+# publish
+RUN dotnet publish -c Release -o /app/publish --no-restore
 
 # runtime
 FROM mcr.microsoft.com/dotnet/aspnet:7.0 AS runtime
