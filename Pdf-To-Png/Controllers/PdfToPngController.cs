@@ -1,11 +1,13 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Pdf_To_Png.Models;
 using Pdf_To_Png.Services;
 
 namespace Pdf_To_Png.Controllers
 {
-    [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
+    [Route("api/pdf-to-png")]
     public class PdfToPngController : Controller
     {
         private readonly IPdfToPngService _pdfToPngService;

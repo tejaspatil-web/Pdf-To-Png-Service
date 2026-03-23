@@ -20,9 +20,6 @@ Pdf-To-Png/obj/
 # Logs
 *.log
 
-# Docker
-**/Dockerfile
-
 # Others
 *.db
 *.sqlite

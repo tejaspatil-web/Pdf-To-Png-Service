@@ -6,7 +6,7 @@ namespace Pdf_To_Png.Services
     {
         Task<List<byte[]>> ConvertPdfToPng(IFormFile pdfFile);
     }
-    public class PdfToPngService: IPdfToPngService
+    public class PdfToPngService : IPdfToPngService
     {
         public async Task<List<byte[]>> ConvertPdfToPng(IFormFile pdfFile)
         {
@@ -35,6 +35,11 @@ namespace Pdf_To_Png.Services
 
             using (var process = Process.Start(startInfo))
             {
+                if (process == null)
+                {
+                    throw new Exception("Failed to start pdftoppm process.");
+                }
+                
                 process.WaitForExit();
 
                 string stderr = process.StandardError.ReadToEnd();
