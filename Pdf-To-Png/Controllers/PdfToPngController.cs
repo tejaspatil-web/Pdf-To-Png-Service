@@ -18,7 +18,8 @@ namespace Pdf_To_Png.Controllers
         }
 
         [HttpPost("convert")]
-        public async Task<IActionResult> ConvertPdfToPng([FromForm] PdfToPngModel request) {
+        public async Task<IActionResult> ConvertPdfToPng([FromForm] PdfToPngModel request)
+        {
             if (request.File == null)
             {
                 return BadRequest("No file uploaded.");

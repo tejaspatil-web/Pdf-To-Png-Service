@@ -25,7 +25,7 @@ builder.Services.AddCors(options =>
     });
 });
 
-// JWT AUTHENTICATION
+// JWT AUTHENTICATION 
 var jwtKey = builder.Configuration["Jwt:Key"];
 
 if (string.IsNullOrEmpty(jwtKey))
