@@ -6,60 +6,93 @@ namespace Pdf_To_Png.Services
     {
         Task<List<byte[]>> ConvertPdfToPng(IFormFile pdfFile);
     }
+
     public class PdfToPngService : IPdfToPngService
     {
+        private const string PdftoppmPath = "/usr/bin/pdftoppm";
+
         public async Task<List<byte[]>> ConvertPdfToPng(IFormFile pdfFile)
         {
             var imageByteArrays = new List<byte[]>();
 
-            var tempPdfPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName() + ".pdf");
-            using (var stream = new FileStream(tempPdfPath, FileMode.Create))
-            {
-                await pdfFile.CopyToAsync(stream);
-            }
+            if (pdfFile == null || pdfFile.Length == 0)
+                throw new ArgumentException("Invalid PDF file.");
 
-            string outputPrefix = Path.Combine(Path.GetTempPath(), Path.GetFileNameWithoutExtension(Path.GetRandomFileName()));
-            const string pdftoppmPath = "pdftoppm";
-            //string outputPrefix = Path.Combine(Path.GetTempPath(), Path.GetFileNameWithoutExtension(Path.GetRandomFileName()));
-            //var pdftoppmPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"poppler\Library\bin\pdftoppm.exe");
+            if (!File.Exists(PdftoppmPath))
+                throw new Exception("pdftoppm is not installed in container.");
 
-            var startInfo = new ProcessStartInfo
-            {
-                FileName = pdftoppmPath,
-                Arguments = $"-r 144 -png \"{tempPdfPath}\" \"{outputPrefix}\"",
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                UseShellExecute = false,
-                CreateNoWindow = true
-            };
+            //Temp paths
+            var tempPdfPath = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid()}.pdf");
+            var outputPrefix = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
 
-            using (var process = Process.Start(startInfo))
+            try
             {
-                if (process == null)
+                //Save uploaded PDF
+                using (var stream = new FileStream(tempPdfPath, FileMode.Create))
                 {
-                    throw new Exception("Failed to start pdftoppm process.");
+                    await pdfFile.CopyToAsync(stream);
                 }
-                
-                process.WaitForExit();
 
-                string stderr = process.StandardError.ReadToEnd();
+                //Start process
+                var startInfo = new ProcessStartInfo
+                {
+                    FileName = PdftoppmPath,
+                    Arguments = $"-r 144 -png \"{tempPdfPath}\" \"{outputPrefix}\"",
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                };
+
+                using var process = new Process { StartInfo = startInfo };
+
+                process.Start();
+
+                //Read streams asynchronously
+                var stdErrorTask = process.StandardError.ReadToEndAsync();
+
+                await process.WaitForExitAsync();
+
+                var stderr = await stdErrorTask;
+
                 if (process.ExitCode != 0)
                 {
                     throw new Exception($"pdftoppm failed: {stderr}");
                 }
+
+                //Read generated images
+                string directory = Path.GetDirectoryName(outputPrefix)!;
+                string filePrefix = Path.GetFileName(outputPrefix);
+
+                var imageFiles = Directory
+                    .GetFiles(directory, filePrefix + "-*.png")
+                    .OrderBy(f => f);
+
+                foreach (var imageFile in imageFiles)
+                {
+                    var bytes = await File.ReadAllBytesAsync(imageFile);
+                    imageByteArrays.Add(bytes);
+                }
+
+                return imageByteArrays;
             }
-
-            string directory = Path.GetDirectoryName(outputPrefix)!;
-            string filePrefix = Path.GetFileName(outputPrefix);
-            var imageFiles = Directory.GetFiles(directory, filePrefix + "-*.png").OrderBy(f => f);
-
-            foreach (var imageFile in imageFiles)
+            finally
             {
-                var bytes = await File.ReadAllBytesAsync(imageFile);
-                imageByteArrays.Add(bytes);
-            }
+                //Cleanup temp PDF
+                if (File.Exists(tempPdfPath))
+                    File.Delete(tempPdfPath);
 
-            return imageByteArrays;
+                //Cleanup generated PNGs
+                var directory = Path.GetDirectoryName(outputPrefix);
+                if (directory != null)
+                {
+                    var files = Directory.GetFiles(directory, Path.GetFileName(outputPrefix) + "-*.png");
+                    foreach (var file in files)
+                    {
+                        try { File.Delete(file); } catch { }
+                    }
+                }
+            }
         }
     }
 }
