@@ -81,6 +81,14 @@ app.UseAuthorization();
 // SERVICE KEY MIDDLEWARE
 app.Use(async (context, next) =>
 {
+    var path = context.Request.Path;
+
+    if (path.StartsWithSegments("/swagger") || path.StartsWithSegments("/health"))
+    {
+        await next();
+        return;
+    }
+    
     if (!context.Request.Headers.TryGetValue("X-SERVICE-KEY", out var key))
     {
         context.Response.StatusCode = 401;
