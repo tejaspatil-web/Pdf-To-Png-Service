@@ -1,4 +1,3 @@
-# build
 FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
 WORKDIR /src
 
@@ -9,7 +8,6 @@ RUN dotnet restore
 COPY Pdf-To-Png/. .
 RUN dotnet publish -c Release -o /app/publish --no-restore
 
-# runtime
 FROM mcr.microsoft.com/dotnet/aspnet:7.0 AS runtime
 WORKDIR /app
 
@@ -18,8 +16,6 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 ENV ASPNETCORE_ENVIRONMENT=Production
-
-EXPOSE 8080
 
 COPY --from=build /app/publish .
 

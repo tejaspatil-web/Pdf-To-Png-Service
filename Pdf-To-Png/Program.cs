@@ -9,8 +9,15 @@ IdentityModelEventSource.ShowPII = true;
 var builder = WebApplication.CreateBuilder(args);
 
 // Configure Kestrel to listen on the specified port
-var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
-builder.WebHost.UseUrls($"http://*:{port}");
+var port = Environment.GetEnvironmentVariable("PORT");
+
+if (string.IsNullOrEmpty(port))
+{
+    throw new Exception("PORT environment variable is not set!");
+}
+
+builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
+
 
 // CORS
 var allowedOrigins = new[]
@@ -74,7 +81,10 @@ var app = builder.Build();
 
 
 // MIDDLEWARE PIPELINE CONFIGURATION
-//app.UseHttpsRedirection();
+if (app.Environment.IsDevelopment())
+{
+  app.UseHttpsRedirection();
+}
 
 app.UseCors("AllowMultipleOrigins");
 
