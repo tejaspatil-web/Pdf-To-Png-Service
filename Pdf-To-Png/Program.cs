@@ -8,6 +8,10 @@ IdentityModelEventSource.ShowPII = true;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Configure Kestrel to listen on the specified port
+var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+builder.WebHost.UseUrls($"http://*:{port}");
+
 // CORS
 var allowedOrigins = new[]
 {
