@@ -74,7 +74,7 @@ var app = builder.Build();
 
 
 // MIDDLEWARE PIPELINE CONFIGURATION
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
 
 app.UseCors("AllowMultipleOrigins");
 
@@ -87,12 +87,14 @@ app.Use(async (context, next) =>
 {
     var path = context.Request.Path;
 
-    if (path.StartsWithSegments("/swagger") || path.StartsWithSegments("/health"))
+    if (path.StartsWithSegments("/swagger") ||
+        path.StartsWithSegments("/health") ||
+        path == "/")
     {
         await next();
         return;
     }
-    
+
     if (!context.Request.Headers.TryGetValue("X-SERVICE-KEY", out var key))
     {
         context.Response.StatusCode = 401;
@@ -121,6 +123,8 @@ if (app.Environment.IsDevelopment())
 
 // ENDPOINTS
 app.MapControllers();
+
+app.MapGet("/", () => "PDF to PNG Service Running");
 
 app.MapGet("/health", () =>
 {
