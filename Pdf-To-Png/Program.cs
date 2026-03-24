@@ -105,14 +105,22 @@ app.Use(async (context, next) =>
         return;
     }
 
+    var validKey = builder.Configuration["ServiceSettings:ServiceKey"];
+
+    if (string.IsNullOrEmpty(validKey))
+    {
+        Console.WriteLine("Service key NOT configured!");
+        context.Response.StatusCode = 500;
+        await context.Response.WriteAsync("Server misconfiguration");
+        return;
+    }
+
     if (!context.Request.Headers.TryGetValue("X-SERVICE-KEY", out var key))
     {
         context.Response.StatusCode = 401;
         await context.Response.WriteAsync("Missing Service Key");
         return;
     }
-
-    var validKey = builder.Configuration["ServiceSettings:ServiceKey"];
 
     if (!string.Equals(validKey, key))
     {
@@ -143,6 +151,19 @@ app.MapGet("/health", () =>
         status = "OK",
         time = DateTime.UtcNow
     });
+});
+
+app.Use(async (context, next) =>
+{
+    try
+    {
+        await next();
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine("CRASH: " + ex.ToString());
+        throw;
+    }
 });
 
 app.Run();
