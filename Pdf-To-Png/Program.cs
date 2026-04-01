@@ -144,11 +144,12 @@ app.MapControllers();
 
 app.MapGet("/", () => "PDF to PNG Service Running");
 
-app.MapGet("/health", () =>
+app.MapMethods("/health", new[] { "GET", "HEAD" }, () =>
 {
     return Results.Ok(new
     {
         status = "OK",
+        service = "PDF-to-PNG",
         time = DateTime.UtcNow
     });
 });
