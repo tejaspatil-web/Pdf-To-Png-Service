@@ -144,9 +144,15 @@ app.MapControllers();
 
 app.MapGet("/", () => "PDF to PNG Service Running");
 
-app.MapGet("/health", () =>
+app.MapMethods("/health", new[] { "GET", "HEAD" }, async (HttpContext context) =>
 {
-    return Results.Ok(new
+    if (HttpMethods.IsHead(context.Request.Method))
+    {
+        context.Response.StatusCode = StatusCodes.Status200OK;
+        return;
+    }
+
+    await context.Response.WriteAsJsonAsync(new
     {
         status = "OK",
         time = DateTime.UtcNow
